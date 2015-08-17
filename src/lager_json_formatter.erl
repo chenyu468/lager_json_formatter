@@ -23,11 +23,26 @@ json_handler(Msg) ->
   Msg_2 = trim(lager_msg:message(Msg)),
   {struct, [
     {<<"@timestamp">>, iolist_to_binary([Date, $T, Time, $Z])},
-    {message, iolist_to_binary(Msg_2)},
+    {message, to_binary(Msg_2)},
     {level, severity_to_binary(lager_msg:severity(Msg))},
     {level_as_int, lager_msg:severity_as_int(Msg)},
     {destinations, lager_msg:destinations(Msg)}
   | Metadata]}.
+
+to_binary(V) when is_binary(V) ->
+    V;
+to_binary(V) when is_list(V) ->
+    try
+        list_to_binary(V)
+    catch
+        _:_ ->
+            list_to_binary(io_lib:format("~p", [V]))
+    end;
+to_binary(V) when is_atom(V) ->
+    list_to_binary(atom_to_list(V));
+to_binary(V) ->
+    list_to_binary(io_lib:format("~p", [V])).
+
 
 make_printable(A) when is_atom(A) orelse is_binary(A) orelse is_number(A) -> A;
 make_printable(P) when is_pid(P) -> iolist_to_binary(pid_to_list(P));
