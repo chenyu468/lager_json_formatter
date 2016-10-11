@@ -18,16 +18,30 @@ format(Msg, Config) ->
 
 -spec json_handler(lager_msg:lager_msg()) -> any().
 json_handler(Msg) ->
-  {Date, Time} = lager_msg:datetime(Msg),
-  Metadata = [ {K, make_printable(V)} || {K, V} <- lager_msg:metadata(Msg)],
-  Msg_2 = trim(lager_msg:message(Msg)),
-  {struct, [
-    {<<"@timestamp">>, iolist_to_binary([Date, $T, Time, $Z])},
-    {message, to_binary(Msg_2)},
-    {level, severity_to_binary(lager_msg:severity(Msg))},
-    {level_as_int, lager_msg:severity_as_int(Msg)},
-    {destinations, lager_msg:destinations(Msg)}
-  | Metadata]}.
+    {Date, Time} = lager_msg:datetime(Msg),
+    Metadata = [ {K, make_printable(V)} || {K, V} <- lager_msg:metadata(Msg)],
+    Msg_2 = trim(lager_msg:message(Msg)),
+    Equipment_uid = case  application:get_env(fish,mq_username) of
+                        undefined ->
+                            undefined;
+                        {ok,Value} ->
+                            Value
+                    end,
+    Local_ip = case  application:get_env(fish,local_ip) of
+                        undefined ->
+                            undefined;
+                        {ok,Value_a} ->
+                            Value_a
+                    end,
+    {struct, [
+              {<<"@timestamp">>, iolist_to_binary([Date, $T, Time, $Z])},
+              {message, to_binary(Msg_2)},
+              {level, severity_to_binary(lager_msg:severity(Msg))},
+              {level_as_int, lager_msg:severity_as_int(Msg)},
+              {destinations, lager_msg:destinations(Msg)},
+              {equipment_uid, to_binary(Equipment_uid)},
+              {local_ip, Local_ip}
+              | Metadata]}.
 
 to_binary(V) when is_binary(V) ->
     V;
