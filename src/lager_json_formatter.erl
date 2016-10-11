@@ -40,7 +40,7 @@ json_handler(Msg) ->
               {level_as_int, lager_msg:severity_as_int(Msg)},
               {destinations, lager_msg:destinations(Msg)},
               {equipment_uid, to_binary(Equipment_uid)},
-              {local_ip, Local_ip}
+              {local_ip, to_binary(Local_ip)}
               | Metadata]}.
 
 to_binary(V) when is_binary(V) ->
